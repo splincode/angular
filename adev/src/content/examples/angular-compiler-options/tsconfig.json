@@ -21,6 +21,7 @@
     "importHelpers": true,
     "target": "es2020",
     "module": "es2020",
+    // prettier-ignore
     "lib": [
       "es2020",
       "dom"
@@ -30,6 +31,7 @@
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
+    "skipComponentOutputDomEvents": false,
     // #enddocregion angular-compiler-options
     "strictInputAccessModifiers": true,
     "strictTemplates": true
