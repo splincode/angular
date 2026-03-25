@@ -85,7 +85,7 @@ export class EventManager {
     return plugin.addEventListener(
       element,
       parsedEvent.eventName,
-      parsedEvent.prevent ? preventPropagation(handler) : handler,
+      parsedEvent.prevent || parsedEvent.stop ? applyEventModifiers(handler, parsedEvent) : handler,
       options,
     );
   }
@@ -119,31 +119,45 @@ export class EventManager {
   }
 }
 
-function parseEventName(eventName: string): {eventName: string; prevent: boolean} {
+function parseEventName(eventName: string): {eventName: string; prevent: boolean; stop: boolean} {
   const firstModifierIndex = eventName.indexOf('.');
   if (firstModifierIndex === -1) {
-    return {eventName, prevent: false};
+    return {eventName, prevent: false, stop: false};
   }
 
   let modifierStartIndex = firstModifierIndex + 1;
+  let prevent = false;
+  let stop = false;
   while (modifierStartIndex < eventName.length) {
     const modifierEndIndex = eventName.indexOf('.', modifierStartIndex);
     const resolvedModifierEndIndex = modifierEndIndex === -1 ? eventName.length : modifierEndIndex;
     const modifier = eventName.slice(modifierStartIndex, resolvedModifierEndIndex);
 
-    if (modifier !== 'prevent') {
-      return {eventName, prevent: false};
+    if (modifier === 'prevent') {
+      prevent = true;
+    } else if (modifier === 'stop') {
+      stop = true;
+    } else {
+      return {eventName, prevent: false, stop: false};
     }
 
     modifierStartIndex = resolvedModifierEndIndex + 1;
   }
 
-  return {eventName: eventName.slice(0, firstModifierIndex), prevent: true};
+  return {eventName: eventName.slice(0, firstModifierIndex), prevent, stop};
 }
 
-function preventPropagation(handler: Function): Function {
+function applyEventModifiers(
+  handler: Function,
+  {prevent, stop}: {prevent: boolean; stop: boolean},
+): Function {
   return (event: Event) => {
-    event.stopPropagation();
+    if (prevent) {
+      event.preventDefault();
+    }
+    if (stop) {
+      event.stopPropagation();
+    }
     return handler(event);
   };
 }
