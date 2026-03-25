@@ -80,8 +80,14 @@ export class EventManager {
     handler: Function,
     options?: ListenerOptions,
   ): Function {
-    const plugin = this._findPluginFor(eventName);
-    return plugin.addEventListener(element, eventName, handler, options);
+    const parsedEvent = parseEventName(eventName);
+    const plugin = this._findPluginFor(parsedEvent.eventName);
+    return plugin.addEventListener(
+      element,
+      parsedEvent.eventName,
+      parsedEvent.prevent ? preventPropagation(handler) : handler,
+      options,
+    );
   }
 
   /**
@@ -111,4 +117,33 @@ export class EventManager {
     this._eventNameToPlugin.set(eventName, plugin);
     return plugin;
   }
+}
+
+function parseEventName(eventName: string): {eventName: string; prevent: boolean} {
+  const firstModifierIndex = eventName.indexOf('.');
+  if (firstModifierIndex === -1) {
+    return {eventName, prevent: false};
+  }
+
+  let modifierStartIndex = firstModifierIndex + 1;
+  while (modifierStartIndex < eventName.length) {
+    const modifierEndIndex = eventName.indexOf('.', modifierStartIndex);
+    const resolvedModifierEndIndex = modifierEndIndex === -1 ? eventName.length : modifierEndIndex;
+    const modifier = eventName.slice(modifierStartIndex, resolvedModifierEndIndex);
+
+    if (modifier !== 'prevent') {
+      return {eventName, prevent: false};
+    }
+
+    modifierStartIndex = resolvedModifierEndIndex + 1;
+  }
+
+  return {eventName: eventName.slice(0, firstModifierIndex), prevent: true};
+}
+
+function preventPropagation(handler: Function): Function {
+  return (event: Event) => {
+    event.stopPropagation();
+    return handler(event);
+  };
 }

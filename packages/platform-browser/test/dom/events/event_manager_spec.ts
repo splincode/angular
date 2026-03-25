@@ -82,6 +82,37 @@ import type {} from 'zone.js';
       expect(receivedEvent).toBe(dispatchedEvent);
     });
 
+    it('should stop event propagation when the prevent modifier is used', () => {
+      const parent = el('<div></div>');
+      const child = el('<input></input>');
+      parent.appendChild(child);
+      doc.body.appendChild(parent);
+
+      const parentHandler = jasmine.createSpy('parentHandler');
+      const childHandler = jasmine.createSpy('childHandler');
+      const manager = new EventManager([domEventPlugin], new FakeNgZone());
+
+      manager.addEventListener(parent, 'change', parentHandler);
+      manager.addEventListener(child, 'change.prevent', childHandler);
+
+      const event = new Event('change', {bubbles: true, cancelable: true});
+      child.dispatchEvent(event);
+
+      expect(childHandler).toHaveBeenCalled();
+      expect(parentHandler).not.toHaveBeenCalled();
+    });
+
+    it('should keep non-modifier dotted event names unchanged', () => {
+      const element = el('<div></div>');
+      const handler = jasmine.createSpy('handler');
+      const plugin = new FakeEventManagerPlugin(doc, ['keydown.enter']);
+      const manager = new EventManager([domEventPlugin, plugin], new FakeNgZone());
+
+      manager.addEventListener(element, 'keydown.enter', handler);
+
+      expect(plugin.eventHandler['keydown.enter']).toBe(handler);
+    });
+
     it('should keep zone when addEventListener', () => {
       const Zone = (window as any)['Zone'];
 
