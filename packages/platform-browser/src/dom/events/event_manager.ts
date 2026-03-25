@@ -120,19 +120,14 @@ export class EventManager {
 }
 
 function parseEventName(eventName: string): {eventName: string; prevent: boolean; stop: boolean} {
-  const firstModifierIndex = eventName.indexOf('.');
-  if (firstModifierIndex === -1) {
+  const [name, ...modifiers] = eventName.split('.');
+  if (modifiers.length === 0) {
     return {eventName, prevent: false, stop: false};
   }
 
-  let modifierStartIndex = firstModifierIndex + 1;
   let prevent = false;
   let stop = false;
-  while (modifierStartIndex < eventName.length) {
-    const modifierEndIndex = eventName.indexOf('.', modifierStartIndex);
-    const resolvedModifierEndIndex = modifierEndIndex === -1 ? eventName.length : modifierEndIndex;
-    const modifier = eventName.slice(modifierStartIndex, resolvedModifierEndIndex);
-
+  for (const modifier of modifiers) {
     if (modifier === 'prevent') {
       prevent = true;
     } else if (modifier === 'stop') {
@@ -140,11 +135,9 @@ function parseEventName(eventName: string): {eventName: string; prevent: boolean
     } else {
       return {eventName, prevent: false, stop: false};
     }
-
-    modifierStartIndex = resolvedModifierEndIndex + 1;
   }
 
-  return {eventName: eventName.slice(0, firstModifierIndex), prevent, stop};
+  return {eventName: name, prevent, stop};
 }
 
 function applyEventModifiers(
