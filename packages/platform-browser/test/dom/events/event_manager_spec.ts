@@ -82,6 +82,17 @@ import type {} from 'zone.js';
       expect(receivedEvent).toBe(dispatchedEvent);
     });
 
+    it('should keep non-modifier dotted event names unchanged', () => {
+      const element = el('<div></div>');
+      const handler = jasmine.createSpy('handler');
+      const plugin = new FakeEventManagerPlugin(doc, ['keydown.enter']);
+      const manager = new EventManager([domEventPlugin, plugin], new FakeNgZone());
+
+      manager.addEventListener(element, 'keydown.enter', handler);
+
+      expect(plugin.eventHandler['keydown.enter']).toBe(handler);
+    });
+
     it('should keep zone when addEventListener', () => {
       const Zone = (window as any)['Zone'];
 
