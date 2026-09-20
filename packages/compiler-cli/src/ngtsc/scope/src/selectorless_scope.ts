@@ -43,6 +43,17 @@ export class SelectorlessComponentScopeReader implements ComponentScopeReader {
     let isPoisoned = meta.isPoisoned;
 
     for (const [name, identifier] of eligibleIdentifiers) {
+      if (ts.isNamespaceImport(identifier.parent)) {
+        for (const [qualifiedName, dep] of this.getMetaFromNamespace(meta, name, identifier)) {
+          dependencies.set(qualifiedName, dep);
+
+          if (dep.kind === MetaKind.Directive && dep.isPoisoned) {
+            isPoisoned = true;
+          }
+        }
+        continue;
+      }
+
       if (dependencies.has(name)) {
         continue;
       }
@@ -101,11 +112,15 @@ export class SelectorlessComponentScopeReader implements ComponentScopeReader {
           !(stmt.importClause.phaseModifier === ts.SyntaxKind.TypeKeyword)
         ) {
           const clause = stmt.importClause;
-          if (clause.namedBindings !== undefined && ts.isNamedImports(clause.namedBindings)) {
-            for (const element of clause.namedBindings.elements) {
-              if (!element.isTypeOnly) {
-                result.set(element.name.text, element.name);
+          if (clause.namedBindings !== undefined) {
+            if (ts.isNamedImports(clause.namedBindings)) {
+              for (const element of clause.namedBindings.elements) {
+                if (!element.isTypeOnly) {
+                  result.set(element.name.text, element.name);
+                }
               }
+            } else if (ts.isNamespaceImport(clause.namedBindings)) {
+              result.set(clause.namedBindings.name.text, clause.namedBindings.name);
             }
           }
           if (clause.name !== undefined) {
@@ -116,6 +131,56 @@ export class SelectorlessComponentScopeReader implements ComponentScopeReader {
       }
 
       current = current.parent;
+    }
+
+    return result;
+  }
+
+  private getMetaFromNamespace(
+    meta: DirectiveMeta,
+    localName: string,
+    node: ts.Identifier,
+  ): Map<string, DirectiveMeta | PipeMeta> {
+    const result = new Map<string, DirectiveMeta | PipeMeta>();
+    if (meta.localReferencedSymbols === null) {
+      return result;
+    }
+
+    const prefix = `${localName}.`;
+    const referencedSymbols = Array.from(meta.localReferencedSymbols).filter((name) =>
+      name.startsWith(prefix),
+    );
+    if (referencedSymbols.length === 0) {
+      return result;
+    }
+
+    const declaration = this.reflector.getDeclarationOfIdentifier(node);
+    if (declaration === null || !ts.isSourceFile(declaration.node)) {
+      return result;
+    }
+
+    const exports = this.reflector.getExportsOfModule(declaration.node);
+    if (exports === null) {
+      return result;
+    }
+
+    for (const qualifiedName of referencedSymbols) {
+      const exportName = qualifiedName.slice(prefix.length);
+      if (exportName.length === 0 || exportName.includes('.')) {
+        continue;
+      }
+
+      const exportedDeclaration = exports.get(exportName);
+      if (exportedDeclaration === undefined || !this.reflector.isClass(exportedDeclaration.node)) {
+        continue;
+      }
+
+      const ref = new Reference(exportedDeclaration.node);
+      const dep =
+        this.metaReader.getDirectiveMetadata(ref) ?? this.metaReader.getPipeMetadata(ref);
+      if (dep !== null) {
+        result.set(qualifiedName, dep);
+      }
     }
 
     return result;
