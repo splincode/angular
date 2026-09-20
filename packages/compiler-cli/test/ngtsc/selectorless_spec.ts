@@ -857,6 +857,35 @@ runInEachFileSystem(() => {
       expect(diags.map((d) => d.messageText)).toEqual([]);
     });
 
+    it('should resolve selectorless components through namespace imports', () => {
+      env.write(
+        'card.ts',
+        `
+          import {Component, Input} from '@angular/core';
+
+          @Component({template: ''})
+          export class Header {
+            @Input() value!: string;
+          }
+        `,
+      );
+
+      env.write(
+        'test.ts',
+        `
+          import {Component} from '@angular/core';
+          import * as Card from './card';
+
+          @Component({template: '<Card.Header [value]="123"/>'})
+          export class Comp {}
+        `,
+      );
+
+      const diags = env.driveDiagnostics();
+      expect(diags.length).toBe(1);
+      expect(diags[0].messageText).toBe(`Type 'number' is not assignable to type 'string'.`);
+    });
+
     it('should be able to use default imports as selectorless dependencies', () => {
       env.write(
         'dir.ts',
