@@ -1013,7 +1013,10 @@ class _Tokenizer {
 
   private _consumeComponentName(): string[] {
     const nameStart = this._cursor.clone();
-    while (isSelectorlessNameChar(this._cursor.peek())) {
+    while (
+      isSelectorlessNameChar(this._cursor.peek()) ||
+      this._cursor.peek() === chars.$PERIOD
+    ) {
       this._cursor.advance();
     }
     const name = this._cursor.getChars(nameStart);
