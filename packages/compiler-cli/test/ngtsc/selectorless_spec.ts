@@ -886,6 +886,34 @@ runInEachFileSystem(() => {
       expect(diags[0].messageText).toBe(`Type 'number' is not assignable to type 'string'.`);
     });
 
+    it('should emit selectorless components referenced through namespace imports', () => {
+      env.write(
+        'card.ts',
+        `
+          import {Component} from '@angular/core';
+
+          @Component({template: ''})
+          export class Header {}
+        `,
+      );
+
+      env.write(
+        'test.ts',
+        `
+          import {Component} from '@angular/core';
+          import * as Card from './card';
+
+          @Component({template: '<Card.Header/>'})
+          export class Comp {}
+        `,
+      );
+
+      env.driveMain();
+
+      const jsContents = env.getContents('test.js');
+      expect(jsContents).toContain('dependencies: [i1.Header]');
+    });
+
     it('should be able to use default imports as selectorless dependencies', () => {
       env.write(
         'dir.ts',
