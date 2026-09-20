@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { parse, TagContentType } from "../src/index.ts";
+import {
+  isInterpolationToken,
+  parse,
+  TagContentType,
+  type InterpolatedTextToken,
+  type InterpolationToken,
+} from "../src/index.ts";
 import { humanizeDom } from "../../compiler/test/ml_parser/ast_spec_utils.ts";
 import * as ast from "../../compiler/src/ml_parser/ast.ts";
 
@@ -61,6 +67,23 @@ describe("options", () => {
         [ast.Text, "</p>", 1, ["</p>"]],
       ]);
     });
+  });
+});
+
+describe("public token API", () => {
+  it("should expose interpolation token helpers", () => {
+    const [node] = parse('{{ "}}" }}').rootNodes;
+    expect(node).toBeInstanceOf(ast.Text);
+
+    if (!(node instanceof ast.Text)) {
+      return;
+    }
+
+    const tokens: InterpolatedTextToken[] = node.tokens;
+    const token: InterpolationToken | undefined =
+      tokens.find(isInterpolationToken);
+
+    expect(token?.parts).toEqual(["{{", ' "}}" ', "}}"]);
   });
 });
 

@@ -2,6 +2,11 @@ import { HtmlParser } from "../../compiler/src/ml_parser/html_parser.ts";
 import { XmlParser } from "../../compiler/src/ml_parser/xml_parser.ts";
 import type { TagContentType } from "../../compiler/src/ml_parser/tags.ts";
 import { ParseTreeResult as HtmlParseTreeResult } from "../../compiler/src/ml_parser/parser.ts";
+import { TokenType } from "../../compiler/src/ml_parser/tokens.ts";
+import type {
+  InterpolatedTextToken,
+  InterpolationToken,
+} from "../../compiler/src/ml_parser/tokens.ts";
 
 export interface HtmlParseOptions {
   /**
@@ -88,6 +93,12 @@ export function parseHtml(
   );
 }
 
+export function isInterpolationToken(
+  token: InterpolatedTextToken,
+): token is InterpolationToken {
+  return token.type === TokenType.INTERPOLATION;
+}
+
 let xmlParser: XmlParser;
 export function parseXml(input: string) {
   xmlParser ??= new XmlParser();
@@ -111,6 +122,10 @@ export { SUPPORTED_BLOCKS as SUPPORTED_ANGULAR_BLOCKS } from "../../compiler/src
 
 // Types
 export type { ParseTreeResult } from "../../compiler/src/ml_parser/parser.ts";
+export type {
+  InterpolatedTextToken,
+  InterpolationToken,
+} from "../../compiler/src/ml_parser/tokens.ts";
 export type * as Ast from "../../compiler/src/ml_parser/ast.ts";
 
 // Remove these alias in next major release
