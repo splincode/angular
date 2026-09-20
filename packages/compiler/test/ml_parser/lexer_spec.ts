@@ -334,6 +334,16 @@ describe('HtmlLexer', () => {
         ]);
       });
 
+      it('should parse a qualified component tag', () => {
+        expect(tokenizeAndHumanizeParts('<Card.Header>hello</Card.Header>', options)).toEqual([
+          [TokenType.COMPONENT_OPEN_START, 'Card.Header', '', ''],
+          [TokenType.COMPONENT_OPEN_END],
+          [TokenType.TEXT, 'hello'],
+          [TokenType.COMPONENT_CLOSE, 'Card.Header', '', ''],
+          [TokenType.EOF],
+        ]);
+      });
+
       it('should parse a component tag with a tag name', () => {
         expect(tokenizeAndHumanizeParts('<MyComp:button>hello</MyComp:button>', options)).toEqual([
           [TokenType.COMPONENT_OPEN_START, 'MyComp', '', 'button'],
