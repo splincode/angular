@@ -75,10 +75,6 @@ describe("public token API", () => {
     const [node] = parse('{{ "}}" }}').rootNodes;
     expect(node).toBeInstanceOf(ast.Text);
 
-    if (!(node instanceof ast.Text)) {
-      return;
-    }
-
     const tokens: InterpolatedTextToken[] = node.tokens;
     const token: InterpolationToken | undefined =
       tokens.find(isInterpolationToken);
