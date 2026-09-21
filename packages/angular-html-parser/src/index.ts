@@ -122,10 +122,7 @@ export { SUPPORTED_BLOCKS as SUPPORTED_ANGULAR_BLOCKS } from "../../compiler/src
 
 // Types
 export type { ParseTreeResult } from "../../compiler/src/ml_parser/parser.ts";
-export type {
-  InterpolatedTextToken,
-  InterpolationToken,
-} from "../../compiler/src/ml_parser/tokens.ts";
+export type * as Tokens from "../../compiler/src/ml_parser/tokens.ts";
 export type * as Ast from "../../compiler/src/ml_parser/ast.ts";
 
 // Remove these alias in next major release
