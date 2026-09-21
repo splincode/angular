@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  isInterpolationToken,
-  parse,
-  TagContentType,
-  type InterpolatedTextToken,
-  type InterpolationToken,
-} from "../src/index.ts";
+import { isInterpolationToken, parse, TagContentType } from "../src/index.ts";
 import { humanizeDom } from "../../compiler/test/ml_parser/ast_spec_utils.ts";
 import * as ast from "../../compiler/src/ml_parser/ast.ts";
 
