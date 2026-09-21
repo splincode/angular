@@ -70,19 +70,6 @@ describe("options", () => {
   });
 });
 
-describe("public token API", () => {
-  it("should expose interpolation token helpers", () => {
-    const [node] = parse('{{ "}}" }}').rootNodes;
-    expect(node).toBeInstanceOf(ast.Text);
-
-    const tokens: InterpolatedTextToken[] = node.tokens;
-    const token: InterpolationToken | undefined =
-      tokens.find(isInterpolationToken);
-
-    expect(token?.parts).toEqual(["{{", ' "}}" ', "}}"]);
-  });
-});
-
 describe("AST format", () => {
   it("should have `type` property", () => {
     const input = `<!DOCTYPE html> <el attr></el>txt<!--  --><![CDATA[foo]]>`;
@@ -304,4 +291,15 @@ it("Edge cases", () => {
   expect(humanizeDom(parse("<html:style></html:style>"))).toEqual([
     [ast.Element, ":html:style", 0],
   ]);
+});
+
+describe("public token API", () => {
+  it("should expose interpolation token helpers", () => {
+    const node = parse('{{ "}}" }}').rootNodes[0] as ast.Text;
+    expect(node).toBeInstanceOf(ast.Text);
+
+    const tokens = node.tokens;
+    const token = tokens.find(isInterpolationToken)!;
+    expect(token.parts).toEqual(["{{", ' "}}" ', "}}"]);
+  });
 });
