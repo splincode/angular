@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isInterpolationToken, parse, TagContentType } from "../src/index.ts";
+import { parse, TagContentType, TokenType } from "../src/index.ts";
 import { humanizeDom } from "../../compiler/test/ml_parser/ast_spec_utils.ts";
 import * as ast from "../../compiler/src/ml_parser/ast.ts";
 
@@ -288,12 +288,13 @@ it("Edge cases", () => {
 });
 
 describe("public token API", () => {
-  it("should expose interpolation token helpers", () => {
+  it("should expose TokenType", () => {
     const node = parse('{{ "}}" }}').rootNodes[0] as ast.Text;
     expect(node).toBeInstanceOf(ast.Text);
 
-    const tokens = node.tokens;
-    const token = tokens.find(isInterpolationToken)!;
+    const token = node.tokens.find(
+      ({ type }) => type === TokenType.INTERPOLATION,
+    )!;
     expect(token.parts).toEqual(["{{", ' "}}" ', "}}"]);
   });
 });
