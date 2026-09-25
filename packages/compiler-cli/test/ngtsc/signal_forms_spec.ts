@@ -535,6 +535,58 @@ runInEachFileSystem(() => {
       );
     });
 
+    it('should allow component-owned constraints when form field constraint bindings are disabled', () => {
+      env.write(
+        'test.ts',
+        `
+          import {Component, signal, model, input} from '@angular/core';
+          import {FormField, form, FormValueControl} from '@angular/forms/signals';
+
+          @Component({selector: 'range-control', template: ''})
+          class RangeControl implements FormValueControl<readonly [number, number], number, {days: number} | null> {
+            readonly value = model.required<readonly [number, number]>();
+            readonly min = input(0);
+            readonly max = input(100);
+            readonly minLength = input<{days: number} | null>(null);
+          }
+
+          @Component({
+            imports: [FormField, RangeControl],
+            template: '<range-control formFieldIgnoreConstraints [formField]="field" [min]="0" [max]="100" [minLength]="{days: 3}"/>',
+          })
+          class TestCmp {
+            readonly field = form(signal<readonly [number, number]>([20, 80]));
+          }
+        `,
+      );
+
+      expect(env.driveDiagnostics()).toEqual([]);
+    });
+
+    it('should continue to reject explicit native constraints when custom constraints are ignored', () => {
+      env.write(
+        'test.ts',
+        `
+          import {Component, signal} from '@angular/core';
+          import {FormField, form} from '@angular/forms/signals';
+
+          @Component({
+            imports: [FormField],
+            template: '<input type="number" formFieldIgnoreConstraints [formField]="field" [min]="0"/>',
+          })
+          class TestCmp {
+            readonly field = form(signal(5));
+          }
+        `,
+      );
+
+      const diags = env.driveDiagnostics();
+      expect(diags.length).toBe(1);
+      expect(extractMessage(diags[0])).toBe(
+        `Binding to '[min]' is not allowed on nodes using the '[formField]' directive`,
+      );
+    });
+
     it('should allow binding to `value` on radio controls', () => {
       env.write(
         'test.ts',

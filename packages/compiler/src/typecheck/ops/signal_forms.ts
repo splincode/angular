@@ -51,12 +51,27 @@ const formControlInputFields = [
   'required',
 ];
 
+/** Constraint names can also be component-owned inputs on a custom control. */
+const formControlConstraintFields = new Set(['min', 'max', 'minLength', 'maxLength']);
+
+export function ignoresCustomControlConstraints(
+  node: Template | Element | Component | Directive,
+): boolean {
+  return node.attributes.some(
+    (attribute) => attribute.name === 'formFieldIgnoreConstraints' && attribute.value === '',
+  );
+}
+
 /** Names of input fields to which users aren't allowed to bind when using a `field` directive. */
 export const customFormControlBannedInputFields = new Set([
   ...formControlInputFields,
   'value',
   'checked',
 ]);
+
+export const customFormControlBannedInputFieldsWithoutConstraints = new Set(
+  [...customFormControlBannedInputFields].filter((name) => !formControlConstraintFields.has(name)),
+);
 
 /** Names of the fields that are optional on a control. */
 const formControlOptionalFields = new Set([
@@ -288,6 +303,9 @@ export function expandBoundAttributesForField(
   }
 
   for (const name of formControlInputFields) {
+    if (ignoresCustomControlConstraints(node) && formControlConstraintFields.has(name)) {
+      continue;
+    }
     const input = getSyntheticFieldBoundInput(
       directive,
       name,

@@ -17,6 +17,8 @@ import {
 } from './bindings';
 import {formatDateForMinMax, setNativeDomProperty} from './native';
 
+const constraintNames = new Set(['min', 'max', 'minLength', 'maxLength']);
+
 export function customControlCreate(
   host: ControlDirectiveHost,
   parent: FormField<unknown>,
@@ -37,6 +39,9 @@ export function customControlCreate(
 
     // Bind remaining field state properties.
     for (const name of CONTROL_BINDING_NAMES) {
+      if (parent.ignoreConstraints() && constraintNames.has(name)) {
+        continue;
+      }
       let value: unknown;
       if (name === 'errors') {
         value = parent.errors();

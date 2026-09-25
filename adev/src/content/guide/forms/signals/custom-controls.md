@@ -492,6 +492,21 @@ export class NumberInput implements FormValueControl<number> {
 
 When you add `min()` and `max()` validation rules to the schema, the FormField directive passes these values to your control. Use them to apply HTML5 attributes or show constraint hints in your template.
 
+Some controls use `min`, `max`, `minLength`, or `maxLength` for other settings, such as the
+ends of a slider's scale or the duration of a date range. Add the static
+`formFieldIgnoreConstraints` attribute to keep these inputs under the control's ownership:
+
+```html
+<range-control formFieldIgnoreConstraints [formField]="form.range" [min]="0" [max]="100" />
+```
+
+The form schema still validates the field. This attribute only prevents the four constraint
+values from being written to the custom control (or its underlying native element). Other form
+state, including `required`, remains bound normally. Use it only with custom controls. If the
+control explicitly implements `FormValueControl`, specify the types of its own min/max and length
+inputs as the optional second and third type arguments, respectively. Existing controls can omit
+these arguments and retain their current constraint types.
+
 IMPORTANT: Don't implement validation logic in your control. Define validation rules in the form schema and let your control display the results:
 
 ```ts {avoid}

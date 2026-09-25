@@ -2393,6 +2393,52 @@ describe('field directive', () => {
     });
 
     describe('max', () => {
+      it('should preserve component-owned constraint inputs when opted out', () => {
+        @Component({selector: 'range-control', template: ''})
+        class RangeControl implements FormValueControl<
+          readonly number[],
+          number,
+          {days: number} | null
+        > {
+          readonly value = model.required<readonly number[]>();
+          readonly min = input(0);
+          readonly max = input(100);
+          readonly minLength = input<{days: number} | null>(null);
+          readonly required = input(false);
+        }
+
+        @Component({
+          imports: [FormField, RangeControl],
+          template: `<range-control
+            formFieldIgnoreConstraints
+            [formField]="field"
+            [min]="5"
+            [max]="95"
+            [minLength]="{days: 3}"
+          />`,
+        })
+        class TestCmp {
+          readonly length = signal(1);
+          readonly field = form(signal<readonly number[]>([20, 80]), (p) => {
+            minLength(p, this.length);
+            required(p);
+          });
+          readonly control = viewChild.required(RangeControl);
+        }
+
+        const fixture = act(() => TestBed.createComponent(TestCmp));
+        const control = fixture.componentInstance.control();
+
+        expect(control.value()).toEqual([20, 80]);
+        expect(control.min()).toBe(5);
+        expect(control.max()).toBe(95);
+        expect(control.minLength()).toEqual({days: 3});
+        expect(control.required()).toBe(true);
+
+        act(() => fixture.componentInstance.length.set(2));
+        expect(control.minLength()).toEqual({days: 3});
+      });
+
       it('should bind to native control', () => {
         @Component({
           imports: [FormField],

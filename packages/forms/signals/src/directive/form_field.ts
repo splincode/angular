@@ -8,6 +8,7 @@
 
 import {
   afterRenderEffect,
+  booleanAttribute,
   computed,
   type ɵControlDirectiveHost as ControlDirectiveHost,
   DestroyRef,
@@ -119,6 +120,16 @@ export class FormField<T> {
    * The field to bind to the underlying form control.
    */
   readonly field = input.required<Field<T>>({alias: 'formField'});
+
+  /**
+   * Leaves `min`, `max`, `minLength`, and `maxLength` inputs under the control's ownership.
+   * Use the static `formFieldIgnoreConstraints` attribute on a custom control whose inputs
+   * with these names do not represent field validation constraints.
+   */
+  readonly ignoreConstraints = input(false, {
+    alias: 'formFieldIgnoreConstraints',
+    transform: booleanAttribute,
+  });
 
   /**
    * `FieldState` for the currently bound field.

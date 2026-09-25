@@ -22,6 +22,8 @@ import {
   checkUnsupportedFieldBindings,
   CustomFormControlType,
   customFormControlBannedInputFields,
+  customFormControlBannedInputFieldsWithoutConstraints,
+  ignoresCustomControlConstraints,
   expandBoundAttributesForField,
 } from './signal_forms';
 import {getBoundAttributes, widenBinding} from './bindings';
@@ -71,7 +73,13 @@ export class TcbDirectiveInputsOp extends TcbOp {
     const boundAttrs = getBoundAttributes(this.dir, this.node);
 
     if (this.customFormControlType !== null) {
-      checkUnsupportedFieldBindings(this.node, customFormControlBannedInputFields, this.tcb);
+      checkUnsupportedFieldBindings(
+        this.node,
+        ignoresCustomControlConstraints(this.node)
+          ? customFormControlBannedInputFieldsWithoutConstraints
+          : customFormControlBannedInputFields,
+        this.tcb,
+      );
     }
 
     if (this.customFormControlType !== null || this.isFormControl) {
