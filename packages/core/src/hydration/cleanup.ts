@@ -36,7 +36,8 @@ export function removeDehydratedViews(lContainer: LContainer) {
   const parentLView = lContainer[PARENT];
   const renderer = parentLView[RENDERER];
   const retainedViews = [];
-  for (const view of views) {
+  for (let i = views.length - 1; i >= 0; i--) {
+    const view = views[i];
     // Do not clean up contents of `@defer` blocks.
     // The cleanup for this content would happen once a given block
     // is triggered and hydrated.
@@ -51,7 +52,7 @@ export function removeDehydratedViews(lContainer: LContainer) {
   // further processing of dehydrated views is needed for
   // this view container (i.e. do not trigger the lookup process
   // once again in case a `ViewContainerRef` is created later).
-  lContainer[DEHYDRATED_VIEWS] = retainedViews;
+  lContainer[DEHYDRATED_VIEWS] = retainedViews.reverse();
 }
 
 export function removeDehydratedViewList(deferBlock: DehydratedDeferBlock) {
@@ -60,7 +61,8 @@ export function removeDehydratedViewList(deferBlock: DehydratedDeferBlock) {
   if (dehydratedViews === null) return;
   const parentLView = lContainer[PARENT];
   const renderer = parentLView[RENDERER];
-  for (const view of dehydratedViews) {
+  for (let i = dehydratedViews.length - 1; i >= 0; i--) {
+    const view = dehydratedViews[i];
     removeDehydratedView(view, renderer);
     ngDevMode && ngDevMode.dehydratedViewsRemoved++;
   }
